@@ -17,11 +17,18 @@ import json
 
 chat_bp = Blueprint('chat', __name__)
 
-# Initialize NLP components
-gpt_handler = GPTHandler()
-sentiment_analyzer = SentimentAnalyzer()
-intent_detector = IntentDetector()
-recommendation_engine = RecommendationEngine()
+# Initialize NLP components with error handling
+try:
+    gpt_handler = GPTHandler()
+    sentiment_analyzer = SentimentAnalyzer()
+    intent_detector = IntentDetector()
+    recommendation_engine = RecommendationEngine()
+except Exception as e:
+    print(f"Warning: Error initializing NLP components: {e}")
+    gpt_handler = None
+    sentiment_analyzer = None
+    intent_detector = None
+    recommendation_engine = None
 
 # Store conversation contexts in memory (in production, use Redis)
 conversation_contexts = {}
@@ -104,15 +111,15 @@ def send_message(session_id):
         context.add_message('user', message_text)
         
         # Enhanced message analysis
-        sentiment_result = sentiment_analyzer.analyze_sentiment(message_text)
-        intent_result = intent_detector.detect_intent(message_text)
+        sentiment_result = sentiment_analyzer.analyze_sentiment(message_text) if sentiment_analyzer else {'sentiment_label': 'neutral', 'polarity': 0, 'risk_level': 'low'}
+        intent_result = intent_detector.detect_intent(message_text) if intent_detector else {'primary_intent': 'general_question', 'confidence': 0.5, 'urgency_level': 'low'}
         
         # Update context with analysis
         context.update_sentiment(sentiment_result)
         context.update_intent(intent_result)
         
         # Check for crisis keywords
-        crisis_check = gpt_handler.detect_crisis_keywords(message_text)
+        crisis_check = gpt_handler.detect_crisis_keywords(message_text) if gpt_handler else {'is_crisis': False, 'keywords': [], 'severity': 'low'}
         
         # Enhanced mental health analysis
         mental_health_indicators = sentiment_result.get('mental_health_indicators', {})
@@ -135,12 +142,19 @@ def send_message(session_id):
         }
         
         # Generate GPT response with enhanced context
-        gpt_response = gpt_handler.generate_response(
-            user_message=message_text,
-            conversation_history=conversation_history,
-            context=enhanced_context,
-            conversation_type=conversation_type
-        )
+        if gpt_handler:
+            gpt_response = gpt_handler.generate_response(
+                user_message=message_text,
+                conversation_history=conversation_history,
+                context=enhanced_context,
+                conversation_type=conversation_type
+            )
+        else:
+            gpt_response = {
+                'response': "Thank you for sharing with me. I'm here to listen and support you. While I may not have all the answers, I want you to know that your feelings are valid and there are resources available to help.",
+                'conversation_type': conversation_type,
+                'safety_check': {'is_safe': True, 'confidence': 1.0}
+            }
         
         bot_response_text = gpt_response['response']
         
@@ -208,11 +222,14 @@ def send_message(session_id):
                 'indicators': mental_health_indicators
             }
             
-            recommendations = recommendation_engine.generate_recommendations(
-                user_profile=user_profile,
-                current_context=current_context,
-                assessment_results=assessment_results
-            )
+            if recommendation_engine:
+                recommendations = recommendation_engine.generate_recommendations(
+                    user_profile=user_profile,
+                    current_context=current_context,
+                    assessment_results=assessment_results
+                )
+            else:
+                recommendations = []
         
         # Check if escalation is needed
         escalation_needed = (

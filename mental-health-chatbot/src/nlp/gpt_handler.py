@@ -15,9 +15,11 @@ class GPTHandler:
         """Initialize GPT handler with enhanced configuration"""
         self.api_key = os.environ.get('OPENAI_API_KEY')
         if not self.api_key:
-            raise ValueError("OPENAI_API_KEY environment variable is required")
+            print("Warning: OPENAI_API_KEY not found. Using fallback responses.")
+            self.client = None
+        else:
+            self.client = OpenAI(api_key=self.api_key)
         
-        self.client = OpenAI(api_key=self.api_key)
         self.model = os.environ.get('OPENAI_MODEL', 'gpt-4')
         self.max_tokens = int(os.environ.get('OPENAI_MAX_TOKENS', '1500'))
         self.temperature = float(os.environ.get('OPENAI_TEMPERATURE', '0.7'))
@@ -93,6 +95,10 @@ CRISIS RESOURCES:
         
         for attempt in range(self.max_retries):
             try:
+                # If no OpenAI client, return fallback response
+                if not self.client:
+                    return self._create_fallback_response(user_message, conversation_type)
+                
                 # Prepare system prompt
                 system_prompt = self.system_prompts.get(conversation_type, self.system_prompts['general'])
                 
@@ -169,6 +175,26 @@ CRISIS RESOURCES:
                     time.sleep(1 + attempt * 0.5)
         
         return self._create_error_response("Max retries exceeded", conversation_type)
+    
+    def _create_fallback_response(self, user_message: str, conversation_type: str) -> Dict[str, Any]:
+        """Create a fallback response when OpenAI API is not available"""
+        fallback_responses = {
+            'crisis': "I'm very concerned about what you're sharing. Please reach out to the National Suicide Prevention Lifeline at 988 or text HOME to 741741 immediately. You don't have to go through this alone.",
+            'depression': "I hear that you're going through a difficult time. It's important to know that what you're feeling is valid, and there are people who want to help. Have you considered talking to a mental health professional?",
+            'anxiety': "It sounds like you're experiencing anxiety, which can be really overwhelming. Some techniques that might help include deep breathing exercises and grounding techniques. Would you like me to guide you through a breathing exercise?",
+            'general': "Thank you for sharing with me. I'm here to listen and support you. While I may not have all the answers, I want you to know that your feelings are valid and there are resources available to help."
+        }
+        
+        response = fallback_responses.get(conversation_type, fallback_responses['general'])
+        
+        return {
+            'response': response,
+            'conversation_type': conversation_type,
+            'safety_check': {'is_safe': True, 'confidence': 1.0},
+            'tokens_used': 0,
+            'timestamp': datetime.now().isoformat(),
+            'fallback_mode': True
+        }
     
     def _create_error_response(self, error_msg: str, conversation_type: str) -> Dict[str, Any]:
         """Create a standardized error response"""

@@ -27,18 +27,13 @@ class SentimentAnalyzer:
         
         # Initialize HuggingFace pipelines
         try:
-            self.sentiment_pipeline = pipeline(
-                "sentiment-analysis",
-                model="cardiffnlp/twitter-roberta-base-sentiment-latest",
-                return_all_scores=True
-            )
-            self.emotion_pipeline = pipeline(
-                "text-classification",
-                model="j-hartmann/emotion-english-distilroberta-base",
-                return_all_scores=True
-            )
+            # Use simpler models that are more likely to work
+            self.sentiment_pipeline = pipeline("sentiment-analysis", return_all_scores=True)
+            self.emotion_pipeline = None  # Disable for now to avoid download issues
         except Exception as e:
             print(f"Warning: Could not load HuggingFace models: {e}")
+            self.sentiment_pipeline = None
+            self.emotion_pipeline = None
     
     def analyze_sentiment(self, text: str) -> Dict[str, Any]:
         """Comprehensive sentiment analysis"""

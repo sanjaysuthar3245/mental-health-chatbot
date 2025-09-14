@@ -19,7 +19,11 @@ class PineconeClient:
         self.index_name = os.environ.get('PINECONE_INDEX_NAME', 'mental-health-embeddings')
         
         if not self.api_key:
-            raise ValueError("PINECONE_API_KEY environment variable is required")
+            print("Warning: PINECONE_API_KEY not found. Pinecone features will be disabled.")
+            self.pc = None
+            self.index = None
+            self.openai_client = None
+            return
         
         # Initialize Pinecone
         self.pc = Pinecone(api_key=self.api_key)
@@ -54,6 +58,9 @@ class PineconeClient:
     
     def generate_embedding(self, text: str) -> List[float]:
         """Generate embedding for text using OpenAI"""
+        if not self.openai_client:
+            return []
+            
         try:
             response = self.openai_client.embeddings.create(
                 model="text-embedding-ada-002",
@@ -69,6 +76,9 @@ class PineconeClient:
                        text: str, 
                        metadata: Dict[str, Any] = None) -> bool:
         """Store text embedding in Pinecone"""
+        if not self.index:
+            return False
+            
         try:
             embedding = self.generate_embedding(text)
             if not embedding:
@@ -97,6 +107,9 @@ class PineconeClient:
                       top_k: int = 5,
                       filter_dict: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """Search for similar vectors"""
+        if not self.index:
+            return []
+            
         try:
             query_embedding = self.generate_embedding(query)
             if not query_embedding:

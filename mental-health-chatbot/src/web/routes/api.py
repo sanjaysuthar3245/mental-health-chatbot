@@ -14,11 +14,18 @@ import json
 
 api_bp = Blueprint('api', __name__)
 
-# Initialize components
-gpt_handler = GPTHandler()
-sentiment_analyzer = SentimentAnalyzer()
-intent_detector = IntentDetector()
-recommendation_engine = RecommendationEngine()
+# Initialize components with error handling
+try:
+    gpt_handler = GPTHandler()
+    sentiment_analyzer = SentimentAnalyzer()
+    intent_detector = IntentDetector()
+    recommendation_engine = RecommendationEngine()
+except Exception as e:
+    print(f"Warning: Error initializing API components: {e}")
+    gpt_handler = None
+    sentiment_analyzer = None
+    intent_detector = None
+    recommendation_engine = None
 
 @api_bp.route('/health')
 def health_check():
@@ -167,14 +174,20 @@ def send_chat_message(session_id):
         db.session.add(user_message)
         
         # Analyze message
-        sentiment_result = sentiment_analyzer.analyze_sentiment(message_text)
-        intent_result = intent_detector.detect_intent(message_text)
+        sentiment_result = sentiment_analyzer.analyze_sentiment(message_text) if sentiment_analyzer else {'sentiment_label': 'neutral', 'polarity': 0}
+        intent_result = intent_detector.detect_intent(message_text) if intent_detector else {'primary_intent': 'general_question', 'confidence': 0.5}
         
         # Generate GPT response
-        gpt_response = gpt_handler.generate_response(
-            user_message=message_text,
-            conversation_type=intent_result.get('primary_intent', 'general')
-        )
+        if gpt_handler:
+            gpt_response = gpt_handler.generate_response(
+                user_message=message_text,
+                conversation_type=intent_result.get('primary_intent', 'general')
+            )
+        else:
+            gpt_response = {
+                'response': "Thank you for your message. I'm here to support you on your mental health journey.",
+                'conversation_type': 'general'
+            }
         
         bot_response_text = gpt_response['response']
         
@@ -331,11 +344,22 @@ def get_recommendations():
         user_profile.setdefault('mood_score', recent_mood.mood_score)
         user_profile.setdefault('stress_level', recent_mood.stress_level or 5)
     
-    recommendations = recommendation_engine.generate_recommendations(
-        user_profile=user_profile,
-        current_context=current_context,
-        assessment_results=assessment_results
-    )
+    if recommendation_engine:
+        recommendations = recommendation_engine.generate_recommendations(
+            user_profile=user_profile,
+            current_context=current_context,
+            assessment_results=assessment_results
+        )
+    else:
+        recommendations = [
+            {
+                'type': 'general',
+                'title': 'General Support',
+                'description': 'Consider reaching out to a mental health professional for personalized support.',
+                'priority': 3,
+                'duration': 'Ongoing'
+            }
+        ]
     
     return jsonify({
         'recommendations': recommendations
@@ -351,7 +375,10 @@ def analyze_sentiment():
         return jsonify({'error': 'Text is required'}), 400
     
     try:
-        result = sentiment_analyzer.analyze_sentiment(text)
+        if sentiment_analyzer:
+            result = sentiment_analyzer.analyze_sentiment(text)
+        else:
+            result = {'sentiment_label': 'neutral', 'polarity': 0, 'confidence': 0.5}
         return jsonify(result)
     except Exception as e:
         return jsonify({'error': 'Failed to analyze sentiment'}), 500
@@ -366,7 +393,10 @@ def detect_intent():
         return jsonify({'error': 'Text is required'}), 400
     
     try:
-        result = intent_detector.detect_intent(text)
+        if intent_detector:
+            result = intent_detector.detect_intent(text)
+        else:
+            result = {'primary_intent': 'general_question', 'confidence': 0.5, 'urgency_level': 'low'}
         return jsonify(result)
     except Exception as e:
         return jsonify({'error': 'Failed to detect intent'}), 500

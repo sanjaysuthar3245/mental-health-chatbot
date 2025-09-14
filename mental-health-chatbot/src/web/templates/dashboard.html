@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h2 text-gradient mb-4">
+                <i class="fas fa-chart-line me-2"></i> Dashboard
+            </h1>
+        </div>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-heart fa-2x text-primary mb-2"></i>
+                    <h5 class="card-title">Mood Tracking</h5>
+                    <p class="card-text">Track your daily mood and emotions</p>
+                    <a href="{{ url_for('mood_tracking.index') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Entry
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-comments fa-2x text-success mb-2"></i>
+                    <h5 class="card-title">Chat Support</h5>
+                    <p class="card-text">Talk to our AI mental health assistant</p>
+                    <a href="{{ url_for('chat.index') }}" class="btn btn-success">
+                        <i class="fas fa-comments"></i> Start Chat
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-clipboard-check fa-2x text-info mb-2"></i>
+                    <h5 class="card-title">Assessments</h5>
+                    <p class="card-text">Take mental health assessments</p>
+                    <button class="btn btn-info" onclick="startAssessment()">
+                        <i class="fas fa-play"></i> Take Assessment
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-lightbulb fa-2x text-warning mb-2"></i>
+                    <h5 class="card-title">Recommendations</h5>
+                    <p class="card-text">Get personalized recommendations</p>
+                    <button class="btn btn-warning" onclick="getRecommendations()">
+                        <i class="fas fa-magic"></i> Get Tips
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock"></i> Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="recent-activity">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadRecentActivity();
+});
+
+function loadRecentActivity() {
+    // Simulate loading recent activity
+    setTimeout(() => {
+        document.getElementById('recent-activity').innerHTML = `
+            <div class="list-group">
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">Welcome to your dashboard!</h6>
+                        <small>Just now</small>
+                    </div>
+                    <p class="mb-1">Start by tracking your mood or chatting with our AI assistant.</p>
+                </div>
+            </div>
+        `;
+    }, 1000);
+}
+
+function startAssessment() {
+    window.location.href = '/chat?action=assessment';
+}
+
+function getRecommendations() {
+    window.location.href = '/chat?action=recommendations';
+}
+</script>
+{% endblock %}
