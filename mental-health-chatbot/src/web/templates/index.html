@@ -1,0 +1,480 @@
+{% extends "base.html" %}
+
+{% block title %}Home - {{ app_name }}{% endblock %}
+
+{% block main_class %}hero-section{% endblock %}
+
+{% block content %}
+<!-- Enhanced Hero Section -->
+<section class="hero bg-gradient-mental-health text-white py-5 position-relative overflow-hidden">
+    <!-- Background Elements -->
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="z-index: 1;">
+        <div class="floating-elements">
+            <div class="floating-circle" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
+            <div class="floating-circle" style="top: 60%; right: 15%; animation-delay: 2s;"></div>
+            <div class="floating-circle" style="bottom: 30%; left: 20%; animation-delay: 4s;"></div>
+        </div>
+    </div>
+    
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6">
+                <div class="hero-content fade-in">
+                    <h1 class="display-3 fw-bold mb-4 text-gradient">
+                        Your Mental Health Companion
+                    </h1>
+                    <p class="lead mb-4 fs-5">
+                        An AI-powered chatbot that provides empathetic support, mental health assessments, 
+                        and personalized recommendations to help you on your wellness journey.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3 mb-4">
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('chat.index') }}" class="btn btn-light btn-lg interactive">
+                                <i class="fas fa-comments me-2"></i> Start Chatting
+                            </a>
+                            <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-light btn-lg interactive">
+                                <i class="fas fa-chart-line me-2"></i> Dashboard
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg interactive">
+                                <i class="fas fa-user-plus me-2"></i> Get Started
+                            </a>
+                            <a href="{{ url_for('chat.anonymous_chat') }}" class="btn btn-outline-light btn-lg interactive">
+                                <i class="fas fa-eye-slash me-2"></i> Try Anonymous Chat
+                            </a>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Trust Indicators -->
+                    <div class="trust-indicators d-flex flex-wrap gap-4 text-white-75">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-shield-alt me-2"></i>
+                            <span>100% Private & Secure</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-clock me-2"></i>
+                            <span>24/7 Available</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-users me-2"></i>
+                            <span>10,000+ Users</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="hero-image position-relative">
+                    <div class="robot-container float">
+                        <i class="fas fa-robot fa-10x text-white-50"></i>
+                    </div>
+                    <!-- Floating elements around robot -->
+                    <div class="floating-elements position-absolute">
+                        <div class="floating-icon" style="top: 10%; left: 10%; animation-delay: 1s;">
+                            <i class="fas fa-heart fa-2x text-warning"></i>
+                        </div>
+                        <div class="floating-icon" style="top: 20%; right: 20%; animation-delay: 3s;">
+                            <i class="fas fa-brain fa-2x text-info"></i>
+                        </div>
+                        <div class="floating-icon" style="bottom: 20%; left: 15%; animation-delay: 2s;">
+                            <i class="fas fa-lightbulb fa-2x text-success"></i>
+                        </div>
+                        <div class="floating-icon" style="bottom: 30%; right: 10%; animation-delay: 4s;">
+                            <i class="fas fa-star fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Enhanced Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-4 fw-bold mb-3 text-gradient">Key Features</h2>
+                <p class="lead text-muted fs-5">
+                    Comprehensive mental health support powered by advanced AI technology
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-lg interactive stagger-1">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-4">
+                            <div class="icon-wrapper bg-gradient-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="fas fa-brain fa-2x"></i>
+                            </div>
+                        </div>
+                        <h5 class="card-title fw-bold">AI-Powered Conversations</h5>
+                        <p class="card-text text-muted">
+                            Engage in natural, empathetic conversations with our advanced AI chatbot 
+                            that understands context and provides meaningful support.
+                        </p>
+                        <div class="mt-3">
+                            <span class="badge bg-primary">Advanced NLP</span>
+                            <span class="badge bg-info">Context Aware</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-lg interactive stagger-2">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-4">
+                            <div class="icon-wrapper bg-gradient-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="fas fa-chart-line fa-2x"></i>
+                            </div>
+                        </div>
+                        <h5 class="card-title fw-bold">Mood Tracking</h5>
+                        <p class="card-text text-muted">
+                            Track your daily mood, activities, and mental health metrics with 
+                            interactive charts and personalized insights.
+                        </p>
+                        <div class="mt-3">
+                            <span class="badge bg-success">Real-time</span>
+                            <span class="badge bg-warning">Analytics</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-lg interactive stagger-3">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-4">
+                            <div class="icon-wrapper bg-gradient-info text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="fas fa-clipboard-check fa-2x"></i>
+                            </div>
+                        </div>
+                        <h5 class="card-title fw-bold">Mental Health Assessments</h5>
+                        <p class="card-text text-muted">
+                            Take scientifically validated assessments like PHQ-9 and GAD-7 
+                            to understand your mental health status.
+                        </p>
+                        <div class="mt-3">
+                            <span class="badge bg-info">Clinical Grade</span>
+                            <span class="badge bg-secondary">Validated</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-lg interactive stagger-4">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-4">
+                            <div class="icon-wrapper bg-gradient-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="fas fa-lightbulb fa-2x"></i>
+                            </div>
+                        </div>
+                        <h5 class="card-title fw-bold">Personalized Recommendations</h5>
+                        <p class="card-text text-muted">
+                            Receive tailored coping strategies, activities, and resources 
+                            based on your unique needs and preferences.
+                        </p>
+                        <div class="mt-3">
+                            <span class="badge bg-warning">Personalized</span>
+                            <span class="badge bg-success">Evidence-based</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-lg interactive stagger-5">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-4">
+                            <div class="icon-wrapper bg-gradient-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="fas fa-shield-alt fa-2x"></i>
+                            </div>
+                        </div>
+                        <h5 class="card-title fw-bold">Privacy & Security</h5>
+                        <p class="card-text text-muted">
+                            Your data is protected with enterprise-grade security. 
+                            Anonymous chat option available for complete privacy.
+                        </p>
+                        <div class="mt-3">
+                            <span class="badge bg-danger">Encrypted</span>
+                            <span class="badge bg-dark">Anonymous</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-lg interactive stagger-1">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-4">
+                            <div class="icon-wrapper bg-gradient-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="fas fa-mobile-alt fa-2x"></i>
+                            </div>
+                        </div>
+                        <h5 class="card-title fw-bold">Mobile Friendly</h5>
+                        <p class="card-text text-muted">
+                            Access your mental health support anywhere, anytime with 
+                            our responsive design that works on all devices.
+                        </p>
+                        <div class="mt-3">
+                            <span class="badge bg-secondary">Responsive</span>
+                            <span class="badge bg-primary">Cross-platform</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-5 fw-bold mb-3">How It Works</h2>
+                <p class="lead text-muted">
+                    Simple steps to get started with your mental health journey
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-3 text-center">
+                <div class="step-number mb-3">
+                    <span class="badge bg-primary rounded-circle p-3 fs-4">1</span>
+                </div>
+                <h5>Sign Up</h5>
+                <p class="text-muted">Create your account or try anonymous chat</p>
+            </div>
+            
+            <div class="col-md-3 text-center">
+                <div class="step-number mb-3">
+                    <span class="badge bg-primary rounded-circle p-3 fs-4">2</span>
+                </div>
+                <h5>Start Chatting</h5>
+                <p class="text-muted">Begin conversations with our AI chatbot</p>
+            </div>
+            
+            <div class="col-md-3 text-center">
+                <div class="step-number mb-3">
+                    <span class="badge bg-primary rounded-circle p-3 fs-4">3</span>
+                </div>
+                <h5>Track Progress</h5>
+                <p class="text-muted">Monitor your mood and mental health trends</p>
+            </div>
+            
+            <div class="col-md-3 text-center">
+                <div class="step-number mb-3">
+                    <span class="badge bg-primary rounded-circle p-3 fs-4">4</span>
+                </div>
+                <h5>Get Support</h5>
+                <p class="text-muted">Receive personalized recommendations and resources</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="display-5 fw-bold mb-3">Ready to Start Your Journey?</h2>
+        <p class="lead mb-4">
+            Join thousands of users who have found support and guidance through our platform
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('chat.index') }}" class="btn btn-light btn-lg">
+                    <i class="fas fa-comments"></i> Continue Chatting
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg">
+                    <i class="fas fa-user-plus"></i> Get Started Free
+                </a>
+                <a href="{{ url_for('chat.anonymous_chat') }}" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-eye-slash"></i> Try Anonymous Chat
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Crisis Support Section -->
+<section class="py-4 bg-danger text-white">
+    <div class="container text-center">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Crisis Support:</strong> If you're experiencing a mental health crisis, 
+                    please contact the National Suicide Prevention Lifeline at 988 or text HOME to 741741
+                </h5>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="tel:988" class="btn btn-light btn-sm">
+                    <i class="fas fa-phone"></i> Call 988
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero-section {
+    min-height: 100vh;
+}
+
+.hero {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.min-vh-75 {
+    min-height: 75vh;
+}
+
+.trust-indicators {
+    font-size: 0.9rem;
+}
+
+.text-white-75 {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+/* Floating Elements */
+.floating-elements {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.floating-circle {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+}
+
+.floating-icon {
+    position: absolute;
+    animation: float 4s ease-in-out infinite;
+}
+
+.robot-container {
+    position: relative;
+    z-index: 2;
+}
+
+/* Feature Cards */
+.icon-wrapper {
+    transition: all var(--transition-normal);
+}
+
+.card:hover .icon-wrapper {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* Step Numbers */
+.step-number {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step-number .badge {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+/* CTA Section */
+.cta-section {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+}
+
+/* Crisis Support */
+.crisis-section {
+    background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
+    position: relative;
+}
+
+.crisis-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 255, 255, 0.1) 10px,
+        rgba(255, 255, 255, 0.1) 20px
+    );
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hero {
+        min-height: 60vh;
+        text-align: center;
+    }
+    
+    .floating-elements {
+        display: none;
+    }
+    
+    .trust-indicators {
+        justify-content: center;
+    }
+    
+    .trust-indicators > div {
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .display-3 {
+        font-size: 2.5rem;
+    }
+    
+    .lead {
+        font-size: 1.1rem;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+}
+</style>
+{% endblock %}

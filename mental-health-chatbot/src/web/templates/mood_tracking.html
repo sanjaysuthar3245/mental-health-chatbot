@@ -1,0 +1,565 @@
+{% extends "base.html" %}
+
+{% block title %}Mood Tracking - {{ app_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .mood-card {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        border-radius: var(--border-radius-lg);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-lg);
+        transition: all var(--transition-normal);
+    }
+    
+    .mood-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .mood-form {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+    }
+    
+    .mood-scale {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 1rem 0;
+    }
+    
+    .mood-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: var(--border-radius);
+        transition: all var(--transition-fast);
+    }
+    
+    .mood-option:hover {
+        background: var(--gray-100);
+    }
+    
+    .mood-option.selected {
+        background: var(--primary-color);
+        color: white;
+    }
+    
+    .mood-emoji {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .mood-label {
+        font-size: var(--font-size-sm);
+        font-weight: 500;
+    }
+    
+    .analytics-card {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 1rem;
+    }
+    
+    .analytics-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .analytics-title {
+        font-size: var(--font-size-lg);
+        font-weight: 600;
+        color: var(--gray-800);
+    }
+    
+    .analytics-value {
+        font-size: var(--font-size-2xl);
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+    
+    .trend-indicator {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--border-radius-sm);
+        font-size: var(--font-size-sm);
+        font-weight: 500;
+    }
+    
+    .trend-improving {
+        background: var(--success-light);
+        color: var(--success-color);
+    }
+    
+    .trend-declining {
+        background: var(--danger-light);
+        color: var(--danger-color);
+    }
+    
+    .trend-stable {
+        background: var(--gray-200);
+        color: var(--gray-600);
+    }
+    
+    .chart-container {
+        height: 300px;
+        margin: 1rem 0;
+    }
+    
+    .insights-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .insights-list li {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        background: var(--gray-50);
+        border-radius: var(--border-radius);
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .recommendations-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .recommendations-list li {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        background: var(--success-light);
+        color: var(--success-color);
+        border-radius: var(--border-radius);
+        border-left: 4px solid var(--success-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2 text-gradient">
+                    <i class="fas fa-heart me-2"></i> Mood Tracking
+                </h1>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary" onclick="showMoodForm()">
+                        <i class="fas fa-plus me-1"></i> Add Entry
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="exportData()">
+                        <i class="fas fa-download me-1"></i> Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mood Entry Form -->
+    <div class="row" id="mood-form-row" style="display: none;">
+        <div class="col-lg-8 mx-auto">
+            <div class="mood-form">
+                <h3 class="mb-4">How are you feeling today?</h3>
+                <form id="mood-form">
+                    <!-- Mood Scale -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Mood (1-10)</label>
+                        <div class="mood-scale">
+                            <div class="mood-option" data-value="1">
+                                <div class="mood-emoji">😢</div>
+                                <div class="mood-label">Very Low</div>
+                            </div>
+                            <div class="mood-option" data-value="2">
+                                <div class="mood-emoji">😔</div>
+                                <div class="mood-label">Low</div>
+                            </div>
+                            <div class="mood-option" data-value="3">
+                                <div class="mood-emoji">😐</div>
+                                <div class="mood-label">Below Average</div>
+                            </div>
+                            <div class="mood-option" data-value="4">
+                                <div class="mood-emoji">🙁</div>
+                                <div class="mood-label">Poor</div>
+                            </div>
+                            <div class="mood-option" data-value="5">
+                                <div class="mood-emoji">😕</div>
+                                <div class="mood-label">Neutral</div>
+                            </div>
+                            <div class="mood-option" data-value="6">
+                                <div class="mood-emoji">🙂</div>
+                                <div class="mood-label">Good</div>
+                            </div>
+                            <div class="mood-option" data-value="7">
+                                <div class="mood-emoji">😊</div>
+                                <div class="mood-label">Very Good</div>
+                            </div>
+                            <div class="mood-option" data-value="8">
+                                <div class="mood-emoji">😄</div>
+                                <div class="mood-label">Great</div>
+                            </div>
+                            <div class="mood-option" data-value="9">
+                                <div class="mood-emoji">🤩</div>
+                                <div class="mood-label">Excellent</div>
+                            </div>
+                            <div class="mood-option" data-value="10">
+                                <div class="mood-emoji">🥳</div>
+                                <div class="mood-label">Amazing</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="mood-score" name="mood_score" required>
+                    </div>
+                    
+                    <!-- Energy Level -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Energy Level (1-10)</label>
+                        <input type="range" class="form-range" id="energy-level" name="energy_level" min="1" max="10" value="5">
+                        <div class="d-flex justify-content-between">
+                            <small>Exhausted</small>
+                            <small>Energized</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Stress Level -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Stress Level (1-10)</label>
+                        <input type="range" class="form-range" id="stress-level" name="stress_level" min="1" max="10" value="5">
+                        <div class="d-flex justify-content-between">
+                            <small>Relaxed</small>
+                            <small>Very Stressed</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Fields -->
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Sleep Hours</label>
+                            <input type="number" class="form-control" id="sleep-hours" name="sleep_hours" min="0" max="24" step="0.5">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Physical Activity (1-10)</label>
+                            <input type="range" class="form-range" id="physical-activity" name="physical_activity" min="1" max="10" value="5">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Social Activity (1-10)</label>
+                            <input type="range" class="form-range" id="social-activity" name="social_activity" min="1" max="10" value="5">
+                        </div>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div class="mb-4">
+                        <label class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="How are you feeling? What's on your mind?"></textarea>
+                    </div>
+                    
+                    <!-- Tags -->
+                    <div class="mb-4">
+                        <label class="form-label">Tags (Optional)</label>
+                        <input type="text" class="form-control" id="tags" name="tags" placeholder="e.g., work, family, exercise, weather">
+                        <small class="form-text text-muted">Separate tags with commas</small>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" onclick="hideMoodForm()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Save Entry
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Analytics Dashboard -->
+    <div class="row" id="analytics-dashboard">
+        <div class="col-12">
+            <div class="mood-card">
+                <h3 class="mb-4">Your Mood Analytics</h3>
+                <div class="row" id="analytics-content">
+                    <div class="col-12 text-center">
+                        <div class="spinner-border text-light" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Entries -->
+    <div class="row">
+        <div class="col-12">
+            <div class="analytics-card">
+                <h4 class="analytics-title">Recent Entries</h4>
+                <div id="recent-entries">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentMoodScore = null;
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAnalytics();
+        loadRecentEntries();
+        setupMoodForm();
+    });
+    
+    function setupMoodForm() {
+        // Mood scale selection
+        document.querySelectorAll('.mood-option').forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove previous selection
+                document.querySelectorAll('.mood-option').forEach(opt => opt.classList.remove('selected'));
+                
+                // Add selection to clicked option
+                this.classList.add('selected');
+                
+                // Set hidden input value
+                currentMoodScore = this.dataset.value;
+                document.getElementById('mood-score').value = currentMoodScore;
+            });
+        });
+        
+        // Form submission
+        document.getElementById('mood-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitMoodEntry();
+        });
+    }
+    
+    function showMoodForm() {
+        document.getElementById('mood-form-row').style.display = 'block';
+        document.getElementById('mood-form-row').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function hideMoodForm() {
+        document.getElementById('mood-form-row').style.display = 'none';
+        document.getElementById('mood-form').reset();
+        currentMoodScore = null;
+        document.querySelectorAll('.mood-option').forEach(opt => opt.classList.remove('selected'));
+    }
+    
+    function submitMoodEntry() {
+        const formData = new FormData(document.getElementById('mood-form'));
+        const data = Object.fromEntries(formData.entries());
+        
+        // Convert tags string to array
+        if (data.tags) {
+            data.tags = data.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+        }
+        
+        // Convert numeric fields
+        data.mood_score = parseInt(data.mood_score);
+        data.energy_level = parseInt(data.energy_level);
+        data.stress_level = parseInt(data.stress_level);
+        data.physical_activity = parseInt(data.physical_activity);
+        data.social_activity = parseInt(data.social_activity);
+        if (data.sleep_hours) {
+            data.sleep_hours = parseFloat(data.sleep_hours);
+        }
+        
+        fetch('/mood-tracking/api/entry', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showAlert('error', data.error);
+            } else {
+                showAlert('success', 'Mood entry saved successfully!');
+                hideMoodForm();
+                loadAnalytics();
+                loadRecentEntries();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('error', 'Failed to save mood entry');
+        });
+    }
+    
+    function loadAnalytics() {
+        fetch('/mood-tracking/api/analytics')
+        .then(response => response.json())
+        .then(data => {
+            if (data.analytics) {
+                displayAnalytics(data.analytics);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading analytics:', error);
+        });
+    }
+    
+    function displayAnalytics(analytics) {
+        const container = document.getElementById('analytics-content');
+        
+        container.innerHTML = `
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <div class="analytics-card text-center">
+                        <h5 class="analytics-title">Average Mood</h5>
+                        <div class="analytics-value">${analytics.mood.average.toFixed(1)}</div>
+                        <div class="trend-indicator trend-${analytics.mood.trend}">
+                            <i class="fas fa-arrow-${analytics.mood.trend === 'improving' ? 'up' : analytics.mood.trend === 'declining' ? 'down' : 'right'} me-1"></i>
+                            ${analytics.mood.trend}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="analytics-card text-center">
+                        <h5 class="analytics-title">Average Energy</h5>
+                        <div class="analytics-value">${analytics.energy.average.toFixed(1)}</div>
+                        <div class="trend-indicator trend-${analytics.energy.trend}">
+                            <i class="fas fa-arrow-${analytics.energy.trend === 'improving' ? 'up' : analytics.energy.trend === 'declining' ? 'down' : 'right'} me-1"></i>
+                            ${analytics.energy.trend}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="analytics-card text-center">
+                        <h5 class="analytics-title">Average Stress</h5>
+                        <div class="analytics-value">${analytics.stress.average.toFixed(1)}</div>
+                        <div class="trend-indicator trend-${analytics.stress.trend}">
+                            <i class="fas fa-arrow-${analytics.stress.trend === 'improving' ? 'up' : analytics.stress.trend === 'declining' ? 'down' : 'right'} me-1"></i>
+                            ${analytics.stress.trend}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="analytics-card text-center">
+                        <h5 class="analytics-title">Total Entries</h5>
+                        <div class="analytics-value">${analytics.period.total_entries}</div>
+                        <small class="text-muted">Last 30 days</small>
+                    </div>
+                </div>
+            </div>
+            
+            ${analytics.insights && analytics.insights.length > 0 ? `
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h5>Insights</h5>
+                        <ul class="insights-list">
+                            ${analytics.insights.map(insight => `<li>${insight}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Recommendations</h5>
+                        <ul class="recommendations-list">
+                            ${analytics.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            ` : ''}
+        `;
+    }
+    
+    function loadRecentEntries() {
+        fetch('/mood-tracking/api/entries?limit=10')
+        .then(response => response.json())
+        .then(data => {
+            displayRecentEntries(data.entries);
+        })
+        .catch(error => {
+            console.error('Error loading recent entries:', error);
+        });
+    }
+    
+    function displayRecentEntries(entries) {
+        const container = document.getElementById('recent-entries');
+        
+        if (entries.length === 0) {
+            container.innerHTML = '<p class="text-muted">No mood entries yet. Add your first entry above!</p>';
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Mood</th>
+                            <th>Energy</th>
+                            <th>Stress</th>
+                            <th>Sleep</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${entries.map(entry => `
+                            <tr>
+                                <td>${new Date(entry.created_at).toLocaleDateString()}</td>
+                                <td>
+                                    <span class="badge bg-primary">${entry.mood_score}/10</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">${entry.energy_level}/10</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning">${entry.stress_level}/10</span>
+                                </td>
+                                <td>${entry.sleep_hours || '-'} hrs</td>
+                                <td>${entry.notes || '-'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+    
+    function exportData() {
+        window.open('/mood-tracking/api/export', '_blank');
+    }
+    
+    function showAlert(type, message) {
+        // Create alert element
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        // Insert at top of page
+        document.querySelector('.container-fluid').insertBefore(alertDiv, document.querySelector('.container-fluid').firstChild);
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+</script>
+{% endblock %}
+

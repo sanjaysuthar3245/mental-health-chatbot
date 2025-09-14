@@ -1,0 +1,662 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - {{ app_name }}{% endblock %}
+
+{% block main_class %}chat-page{% endblock %}
+
+{% block content %}
+<div class="container-fluid h-100">
+    <div class="row h-100">
+        <!-- Chat Interface -->
+        <div class="col-12 col-lg-8">
+            <div class="chat-container d-flex flex-column h-100">
+                <!-- Chat Header -->
+                <div class="chat-header bg-primary text-white p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">
+                                <i class="fas fa-robot"></i> Mental Health Assistant
+                            </h5>
+                            <small id="connection-status" class="text-light">
+                                <i class="fas fa-circle text-success"></i> Connected
+                            </small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-light btn-sm" id="clear-chat" title="Clear Chat">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button class="btn btn-outline-light btn-sm" id="export-chat" title="Export Chat">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="btn btn-outline-light btn-sm" id="toggle-theme" title="Toggle Theme">
+                                <i class="fas fa-moon"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chat Messages -->
+                <div class="chat-messages flex-grow-1 p-3" id="chat-messages">
+                    <div class="welcome-message text-center text-muted py-5">
+                        <i class="fas fa-heart fa-3x mb-3 text-primary"></i>
+                        <h4>Welcome to your Mental Health Support Chat</h4>
+                        <p>I'm here to listen, support, and help you on your wellness journey.</p>
+                        <p>You can talk to me about anything - your feelings, concerns, or just need someone to listen.</p>
+                        <div class="mt-4">
+                            <button class="btn btn-primary me-2" id="start-assessment">
+                                <i class="fas fa-clipboard-check"></i> Take Assessment
+                            </button>
+                            <button class="btn btn-outline-primary" id="get-recommendations">
+                                <i class="fas fa-lightbulb"></i> Get Recommendations
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chat Input -->
+                <div class="chat-input p-3 bg-light border-top">
+                    <form id="chat-form" class="d-flex gap-2">
+                        <div class="flex-grow-1">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="message-input" 
+                                       placeholder="Type your message here..." autocomplete="off">
+                                <button class="btn btn-outline-secondary" type="button" id="voice-input" title="Voice Input">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="send-button">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                    
+                    <!-- Quick Actions -->
+                    <div class="quick-actions mt-2 d-flex gap-2 flex-wrap">
+                        <button class="btn btn-sm btn-outline-secondary quick-action" data-action="mood">
+                            <i class="fas fa-smile"></i> How are you feeling?
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary quick-action" data-action="stress">
+                            <i class="fas fa-exclamation-triangle"></i> I'm stressed
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary quick-action" data-action="help">
+                            <i class="fas fa-question-circle"></i> I need help
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary quick-action" data-action="crisis">
+                            <i class="fas fa-phone"></i> Crisis support
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-12 col-lg-4 d-none d-lg-block">
+            <div class="chat-sidebar h-100 bg-light border-start">
+                <!-- User Info -->
+                <div class="p-3 border-bottom">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar me-3">
+                            <i class="fas fa-user-circle fa-2x text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">
+                                {% if current_user.is_authenticated %}
+                                    {{ current_user.username }}
+                                {% else %}
+                                    Anonymous User
+                                {% endif %}
+                            </h6>
+                            <small class="text-muted">Mental Health Support</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mood Tracker -->
+                <div class="p-3 border-bottom">
+                    <h6 class="mb-3">
+                        <i class="fas fa-chart-line"></i> Today's Mood
+                    </h6>
+                    <div class="mood-tracker">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>How are you feeling?</span>
+                            <span id="mood-score">-</span>
+                        </div>
+                        <div class="mood-slider">
+                            <input type="range" class="form-range" id="mood-slider" min="1" max="10" value="5">
+                            <div class="d-flex justify-content-between">
+                                <small>😢</small>
+                                <small>😐</small>
+                                <small>😊</small>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-primary w-100 mt-2" id="save-mood">
+                            <i class="fas fa-save"></i> Save Mood
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="p-3 border-bottom">
+                    <h6 class="mb-3">
+                        <i class="fas fa-chart-bar"></i> Quick Stats
+                    </h6>
+                    <div class="stats-grid">
+                        <div class="stat-item text-center">
+                            <div class="stat-value" id="messages-count">0</div>
+                            <div class="stat-label">Messages</div>
+                        </div>
+                        <div class="stat-item text-center">
+                            <div class="stat-value" id="session-duration">0m</div>
+                            <div class="stat-label">Duration</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Resources -->
+                <div class="p-3">
+                    <h6 class="mb-3">
+                        <i class="fas fa-bookmark"></i> Resources
+                    </h6>
+                    <div class="resource-links">
+                        <a href="#" class="resource-link d-block mb-2 text-decoration-none">
+                            <i class="fas fa-phone text-danger"></i> Crisis Hotline: 988
+                        </a>
+                        <a href="#" class="resource-link d-block mb-2 text-decoration-none">
+                            <i class="fas fa-sms text-info"></i> Crisis Text: 741741
+                        </a>
+                        <a href="#" class="resource-link d-block mb-2 text-decoration-none">
+                            <i class="fas fa-globe text-success"></i> Mental Health Resources
+                        </a>
+                        <a href="#" class="resource-link d-block text-decoration-none">
+                            <i class="fas fa-download text-primary"></i> Export Chat History
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assessment Modal -->
+<div class="modal fade" id="assessmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-clipboard-check"></i> Mental Health Assessment
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="assessment-content">
+                    <!-- Assessment questions will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submit-assessment">Submit Assessment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommendations Modal -->
+<div class="modal fade" id="recommendationsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-lightbulb"></i> Personalized Recommendations
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="recommendations-content">
+                    <!-- Recommendations will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.chat-page {
+    height: 100vh;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.chat-container {
+    height: calc(100vh - 76px);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    background: white;
+}
+
+.chat-messages {
+    overflow-y: auto;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    position: relative;
+}
+
+.message {
+    margin-bottom: 1.5rem;
+    animation: slideInUp 0.4s ease-out;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+}
+
+.message.user {
+    flex-direction: row-reverse;
+}
+
+.message.bot {
+    flex-direction: row;
+}
+
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.message.user .message-avatar {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+}
+
+.message.bot .message-avatar {
+    background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+    color: white;
+}
+
+.message-content {
+    max-width: 70%;
+    padding: 1rem 1.25rem;
+    border-radius: var(--border-radius-lg);
+    word-wrap: break-word;
+    position: relative;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-normal);
+}
+
+.message-content:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+}
+
+.message.user .message-content {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    border-bottom-right-radius: var(--border-radius-sm);
+}
+
+.message.bot .message-content {
+    background: white;
+    color: var(--gray-800);
+    border: 1px solid var(--gray-200);
+    border-bottom-left-radius: var(--border-radius-sm);
+}
+
+.message.bot .message-content::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -8px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 8px 8px 0;
+    border-color: transparent white transparent transparent;
+}
+
+.message.user .message-content::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: -8px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 0 8px 8px;
+    border-color: transparent transparent var(--primary-color) transparent;
+}
+
+.message-time {
+    font-size: var(--font-size-xs);
+    color: var(--gray-500);
+    margin-top: 0.5rem;
+    text-align: center;
+    font-weight: 500;
+}
+
+.typing-indicator {
+    display: none;
+    padding: 1rem 1.25rem;
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius-lg);
+    border-bottom-left-radius: var(--border-radius-sm);
+    max-width: 70%;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 1.5rem;
+    animation: slideInUp 0.4s ease-out;
+}
+
+.typing-dots {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.typing-dots span {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+.typing-dots span:nth-child(3) { animation-delay: 0s; }
+
+@keyframes typing {
+    0%, 80%, 100% { 
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% { 
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+.chat-sidebar {
+    height: calc(100vh - 76px);
+    overflow-y: auto;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border-left: 1px solid var(--gray-200);
+}
+
+.chat-input {
+    background: white;
+    border-top: 1px solid var(--gray-200);
+    padding: 1.5rem;
+}
+
+.chat-input .form-control {
+    border-radius: var(--border-radius-lg);
+    border: 2px solid var(--gray-200);
+    padding: 0.75rem 1rem;
+    font-size: var(--font-size-base);
+    transition: all var(--transition-normal);
+}
+
+.chat-input .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.mood-slider {
+    margin: 1rem 0;
+}
+
+.mood-slider input[type="range"] {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--gray-200);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.mood-slider input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.stat-item {
+    padding: 1rem;
+    background: white;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--gray-200);
+    text-align: center;
+    transition: all var(--transition-normal);
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: var(--font-size-xs);
+    color: var(--gray-600);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.resource-link {
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    transition: all var(--transition-normal);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    background: white;
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-sm);
+}
+
+.resource-link:hover {
+    background: var(--gray-50);
+    transform: translateX(4px);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
+}
+
+.quick-actions {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.quick-action {
+    font-size: var(--font-size-sm);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--gray-300);
+    background: white;
+    color: var(--gray-700);
+    transition: all var(--transition-normal);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.quick-action:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
+}
+
+/* Welcome message styling */
+.welcome-message {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border-radius: var(--border-radius-lg);
+    margin: 2rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.welcome-message i {
+    margin-bottom: 1rem;
+    opacity: 0.8;
+}
+
+.welcome-message h4 {
+    color: var(--gray-800);
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.welcome-message p {
+    color: var(--gray-600);
+    margin-bottom: 1.5rem;
+    font-size: var(--font-size-lg);
+}
+
+/* Crisis alert styling */
+.alert.crisis-alert {
+    background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%);
+    border: 2px solid var(--danger-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    animation: pulse 2s infinite;
+}
+
+/* Recommendations styling */
+.recommendations {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    margin: 1rem 0;
+    box-shadow: var(--shadow-md);
+    border-left: 4px solid var(--primary-color);
+}
+
+.recommendation-item {
+    background: var(--gray-50);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--primary-color);
+    transition: all var(--transition-normal);
+}
+
+.recommendation-item:hover {
+    transform: translateX(4px);
+    box-shadow: var(--shadow-md);
+}
+
+.recommendation-priority {
+    font-size: var(--font-size-xs);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.priority-1 { background: var(--danger-color); color: white; }
+.priority-2 { background: var(--warning-color); color: white; }
+.priority-3 { background: var(--info-color); color: white; }
+.priority-4 { background: var(--success-color); color: white; }
+.priority-5 { background: var(--gray-500); color: white; }
+
+.assessment-question {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+}
+
+.assessment-options {
+    margin-top: 1rem;
+}
+
+.assessment-option {
+    margin-bottom: 0.5rem;
+}
+
+.recommendation-item {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    border-left: 4px solid #007bff;
+}
+
+.recommendation-priority {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 1rem;
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.priority-1 { background-color: #dc3545; color: white; }
+.priority-2 { background-color: #fd7e14; color: white; }
+.priority-3 { background-color: #ffc107; color: black; }
+.priority-4 { background-color: #28a745; color: white; }
+.priority-5 { background-color: #6c757d; color: white; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+<script>
+// Initialize chat when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize chat functionality
+    if (typeof ChatInterface !== 'undefined') {
+        const chatInterface = new ChatInterface({
+            anonymous: {{ 'true' if anonymous else 'false' }},
+            sessionId: null // Will be set when session starts
+        });
+    }
+});
+</script>
+{% endblock %}
